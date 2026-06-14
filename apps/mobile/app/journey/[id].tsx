@@ -1,239 +1,156 @@
-import {
-  View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView, Platform,
-} from 'react-native'
-import { useState } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { JourneyRepository } from '@/lib/db/repositories/journey'
-import { InsightRepository } from '@/lib/db/repositories/insight'
+import { useJourney } from '@/hooks/useJourneys'
+import { useDoses } from '@/hooks/useDoses'
+import { useNotes } from '@/hooks/useNotes'
+import { useInsights } from '@/hooks/useInsights'
 import { Colors, Spacing, Typography, Radius } from '@/constants/theme'
 import { formatDate } from '@/lib/utils'
-import type { Phase } from '@shilajit/types'
 
-const PHASES: { key: Phase; label: string }[] = [
-  { key: 'BEFORE', label: 'Before' },
-  { key: 'DURING', label: 'During' },
-  { key: 'AFTER', label: 'After' },
-  { key: 'INTEGRATION', label: 'Integration' },
-]
+interface NavCard {
+  icon: string
+  label: string
+  sublabel: string
+  route: string
+  badge?: string | number
+}
 
-export default function JourneyDetailScreen() {
+export default function JourneyHubScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const qc = useQueryClient()
-  const [phase, setPhase] = useState<Phase>('BEFORE')
-  const [entryText, setEntryText] = useState('')
-  const [insightText, setInsightText] = useState('')
-  const [activeTab, setActiveTab] = useState<'journal' | 'insights'>('journal')
-
-  const { data: journey } = useQuery({
-    queryKey: ['journey', id],
-    queryFn: () => JourneyRepository.findById(id),
-  })
-
-  const { data: insights = [] } = useQuery({
-    queryKey: ['insights', id],
-    queryFn: () => InsightRepository.findAll({ journeyId: id }),
-  })
-
-  const addInsight = useMutation({
-    mutationFn: () => {
-      const insight = InsightRepository.create({ content: insightText, journeyId: id })
-      return Promise.resolve(insight)
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['insights', id] })
-      setInsightText('')
-    },
-  })
+  const { data: journey } = useJourney(id)
+  const { data: doses = [] } = useDoses(id)
+  const { data: notes = [] } = useNotes(id)
+  const { data: insights = [] } = useInsights({ journeyId: id })
 
   if (!journey) return null
 
+  const totalDose = doses.reduce((sum, d) => sum + d.doseMg, 0)
+
+  const navCards: NavCard[] = [
+    {
+      icon: '💊',
+      label: 'Dose Timeline',
+      sublabel: doses.length > 0
+        ? `${doses.length} doses · ${totalDose}${journey.doseUnit} total`
+        : 'Log doses + set reminders',
+      route: `/journey/${id}/doses`,
+      badge: doses.length || undefined,
+    },
+    {
+      icon: '📝',
+      label: 'Notes',
+      sublabel: 'Audio, text, drawing & photos',
+      route: `/journey/${id}/notes`,
+      badge: notes.length || undefined,
+    },
+    {
+      icon: '💡',
+      label: 'Insights',
+      sublabel: insights.length > 0
+        ? `${insights.length} insights captured`
+        : 'Capture learnings from this journey',
+      route: `/journey/${id}/insights` ,
+      badge: insights.length || undefined,
+    },
+    {
+      icon: '🔮',
+      label: 'AI Guidance',
+      sublabel: 'Analysis, next steps & recommendations',
+      route: `/journey/${id}/recommend`,
+    },
+    {
+      icon: '🌀',
+      label: 'Companion',
+      sublabel: 'Talk with Claude or Gemini during your journey',
+      route: `/companion?journeyId=${id}`,
+    },
+  ]
+
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.back}>← Back</Text>
-          </TouchableOpacity>
-          <View style={styles.headerInfo}>
-            <Text style={styles.substance}>{journey.substance}</Text>
-            <Text style={styles.date}>{formatDate(journey.scheduledAt)}</Text>
-          </View>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.back}>← Journeys</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Journey header */}
+        <View style={styles.journeyCard}>
+          <Text style={styles.substance}>{journey.substance}</Text>
+          <Text style={styles.date}>{formatDate(journey.scheduledAt)}</Text>
+          {journey.doseMg && (
+            <Text style={styles.doseMeta}>
+              {journey.doseMg} {journey.doseUnit}
+              {journey.sporeSource ? ` · ${journey.sporeSource}` : ''}
+            </Text>
+          )}
+          {journey.intentions && (
+            <View style={styles.intentionBox}>
+              <Text style={styles.intentionLabel}>Intention</Text>
+              <Text style={styles.intentionText}>{journey.intentions}</Text>
+            </View>
+          )}
         </View>
 
-        {journey.intentions && (
-          <View style={styles.intentionBanner}>
-            <Text style={styles.intentionLabel}>Intention</Text>
-            <Text style={styles.intentionText}>{journey.intentions}</Text>
-          </View>
-        )}
-
-        {/* Tab switcher */}
-        <View style={styles.tabs}>
-          {(['journal', 'insights'] as const).map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.tab, activeTab === tab && styles.tabActive]}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {activeTab === 'journal' ? (
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll}>
-            {/* Phase selector */}
-            <View style={styles.phases}>
-              {PHASES.map(({ key, label }) => (
-                <TouchableOpacity
-                  key={key}
-                  style={[styles.phaseBtn, phase === key && styles.phaseBtnActive]}
-                  onPress={() => setPhase(key)}
-                >
-                  <Text style={[styles.phaseText, phase === key && styles.phaseTextActive]}>
-                    {label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+        {/* Navigation cards */}
+        {navCards.map(({ icon, label, sublabel, route, badge }) => (
+          <TouchableOpacity
+            key={label}
+            style={styles.navCard}
+            onPress={() => router.push(route as Parameters<typeof router.push>[0])}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.navIcon}>{icon}</Text>
+            <View style={styles.navInfo}>
+              <Text style={styles.navLabel}>{label}</Text>
+              <Text style={styles.navSub}>{sublabel}</Text>
             </View>
-
-            <TextInput
-              style={styles.journalInput}
-              placeholder={`Write your ${phase.toLowerCase()} experience...`}
-              placeholderTextColor={Colors.textMuted}
-              multiline
-              value={entryText}
-              onChangeText={setEntryText}
-            />
-          </ScrollView>
-        ) : (
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll}>
-            <View style={styles.addInsight}>
-              <TextInput
-                style={styles.insightInput}
-                placeholder="Capture an insight..."
-                placeholderTextColor={Colors.textMuted}
-                value={insightText}
-                onChangeText={setInsightText}
-                returnKeyType="done"
-                onSubmitEditing={() => insightText.trim() && addInsight.mutate()}
-              />
-              <TouchableOpacity
-                style={styles.addBtn}
-                onPress={() => addInsight.mutate()}
-                disabled={!insightText.trim()}
-              >
-                <Text style={styles.addBtnText}>Add</Text>
-              </TouchableOpacity>
-            </View>
-
-            {insights.map((insight) => (
-              <View key={insight.id} style={styles.insightCard}>
-                <Text style={styles.insightContent}>{insight.content}</Text>
-                <View style={styles.insightMeta}>
-                  <Text style={styles.resonance}>{'◆'.repeat(insight.resonance)}</Text>
-                  {insight.isCore && <Text style={styles.coreBadge}>CORE</Text>}
-                </View>
+            {badge ? (
+              <View style={styles.navBadge}>
+                <Text style={styles.navBadgeText}>{badge}</Text>
               </View>
-            ))}
-          </ScrollView>
-        )}
-      </KeyboardAvoidingView>
+            ) : null}
+            <Text style={styles.navChevron}>›</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    gap: Spacing.md,
-  },
+  header: { padding: Spacing.md },
   back: { color: Colors.primary, fontSize: 16 },
-  headerInfo: { flex: 1 },
-  substance: Typography.h2,
+  scroll: { padding: Spacing.md, gap: Spacing.md },
+  journeyCard: {
+    backgroundColor: Colors.surface, borderRadius: Radius.md, padding: Spacing.md,
+    gap: Spacing.xs, borderWidth: 1, borderColor: Colors.border,
+  },
+  substance: Typography.h1,
   date: Typography.caption,
-  intentionBanner: {
-    marginHorizontal: Spacing.md,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.primary,
+  doseMeta: { ...Typography.caption, color: Colors.primaryLight },
+  intentionBox: {
+    backgroundColor: Colors.background, borderRadius: Radius.sm, padding: Spacing.sm,
+    marginTop: Spacing.sm, borderLeftWidth: 3, borderLeftColor: Colors.primary,
   },
   intentionLabel: { ...Typography.small, color: Colors.primary, marginBottom: 2 },
   intentionText: Typography.body,
-  tabs: { flexDirection: 'row', margin: Spacing.md, gap: Spacing.sm },
-  tab: {
-    flex: 1,
-    padding: Spacing.sm,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
+  navCard: {
+    backgroundColor: Colors.surface, borderRadius: Radius.md, padding: Spacing.md,
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
+    borderWidth: 1, borderColor: Colors.border,
   },
-  tabActive: { backgroundColor: Colors.primary },
-  tabText: Typography.caption,
-  tabTextActive: { color: '#fff', fontWeight: '600' },
-  scroll: { padding: Spacing.md, gap: Spacing.sm },
-  phases: { flexDirection: 'row', gap: Spacing.xs, marginBottom: Spacing.sm },
-  phaseBtn: {
-    flex: 1,
-    padding: Spacing.xs,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
+  navIcon: { fontSize: 28, width: 36, textAlign: 'center' },
+  navInfo: { flex: 1 },
+  navLabel: Typography.h3,
+  navSub: { ...Typography.caption, marginTop: 2 },
+  navBadge: {
+    backgroundColor: Colors.primary, borderRadius: Radius.full,
+    paddingHorizontal: Spacing.sm, paddingVertical: 2, minWidth: 24, alignItems: 'center',
   },
-  phaseBtnActive: { backgroundColor: Colors.primary },
-  phaseText: Typography.small,
-  phaseTextActive: { color: '#fff' },
-  journalInput: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    color: Colors.text,
-    fontSize: 17,
-    minHeight: 300,
-    textAlignVertical: 'top',
-    lineHeight: 26,
-  },
-  addInsight: { flexDirection: 'row', gap: Spacing.sm },
-  insightInput: {
-    flex: 1,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    color: Colors.text,
-    fontSize: 16,
-  },
-  addBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    justifyContent: 'center',
-  },
-  addBtnText: { color: '#fff', fontWeight: '600' },
-  insightCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    gap: Spacing.xs,
-  },
-  insightContent: Typography.body,
-  insightMeta: { flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' },
-  resonance: { color: Colors.primary, fontSize: 10 },
-  coreBadge: {
-    fontSize: 10,
-    color: Colors.accent,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
+  navBadgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  navChevron: { color: Colors.textMuted, fontSize: 24, marginLeft: 4 },
 })

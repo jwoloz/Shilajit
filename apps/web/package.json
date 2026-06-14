@@ -15,6 +15,8 @@
   "dependencies": {
     "@shilajit/db": "*",
     "@shilajit/types": "*",
+    "@anthropic-ai/sdk": "^0.32.0",
+    "@google/generative-ai": "^0.21.0",
     "@supabase/ssr": "^0.4.0",
     "@supabase/supabase-js": "^2.44.0",
     "next": "^14.2.0",

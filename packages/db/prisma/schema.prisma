@@ -40,6 +40,21 @@ enum BeliefCategory {
   OTHER
 }
 
+enum NoteType {
+  TEXT
+  AUDIO
+  VISUAL
+  PHOTO
+}
+
+enum IntegrationType {
+  GOOGLE_WORKSPACE
+  GOOGLE_HOME
+  SPOTIFY
+  BRAINFM
+  GEMINI
+}
+
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model Seeker {
@@ -48,12 +63,16 @@ model Seeker {
   username    String? @unique
   tribeHandle String? @unique
 
-  journeys    Journey[]
-  insights    Insight[]
-  beliefs     Belief[]
-  rituals     Ritual[]
-  sacredTexts SacredText[]
-  tribePosts  TribePost[]
+  journeys        Journey[]
+  insights        Insight[]
+  beliefs         Belief[]
+  rituals         Ritual[]
+  sacredTexts     SacredText[]
+  tribePosts      TribePost[]
+  notes           Note[]
+  recommendations JourneyRecommendation[]
+  integrations    Integration[]
+  sessionTracks   SessionTrack[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -70,9 +89,13 @@ model Journey {
   intentions  String?
   setting     String?
 
-  seeker   Seeker    @relation(fields: [seekerId], references: [id], onDelete: Cascade)
-  entries  Entry[]
-  insights Insight[]
+  seeker          Seeker                  @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  entries         Entry[]
+  insights        Insight[]
+  doseEvents      DoseEvent[]
+  notes           Note[]
+  recommendations JourneyRecommendation[]
+  sessionTracks   SessionTrack[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -95,6 +118,64 @@ model Entry {
   @@index([journeyId])
 }
 
+// Tracks individual dose events within a journey (time, amount, cumulative)
+model DoseEvent {
+  id           String   @id @default(cuid())
+  journeyId    String
+  substance    String
+  doseMg       Float
+  doseUnit     String   @default("mg")
+  takenAt      DateTime @default(now())
+  cumulativeMg Float?
+  notes        String?
+
+  journey Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([journeyId])
+  @@index([takenAt])
+}
+
+// Multi-modal notes: text, audio transcription, canvas drawing, photo OCR
+model Note {
+  id          String   @id @default(cuid())
+  journeyId   String
+  seekerId    String
+  type        NoteType
+  content     String?   // text content or transcription result
+  mediaUrl    String?   // Supabase Storage URL for audio/photo
+  canvasData  String?   // JSON-serialized SVG path data
+  phase       Phase?
+  mood        Int?      // 1–10 mood rating
+  bodyFeel    Int?      // 1–10 physical sensation
+  analysis    String?   // AI-generated analysis of this note
+  timestamp   DateTime  @default(now())
+
+  journey Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  seeker  Seeker  @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([journeyId])
+  @@index([seekerId])
+}
+
+// AI-generated next-steps, tools, integration practices per journey
+model JourneyRecommendation {
+  id          String   @id @default(cuid())
+  journeyId   String
+  seekerId    String
+  content     String   // Markdown-formatted recommendations
+  categories  String[] // e.g. ['INTEGRATION', 'TOOL', 'PRACTICE', 'RESOURCE']
+  generatedAt DateTime @default(now())
+
+  journey Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  seeker  Seeker  @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  @@index([journeyId])
+}
+
 model Insight {
   id        String   @id @default(cuid())
   journeyId String?
@@ -104,9 +185,9 @@ model Insight {
   resonance Int      @default(5)
   isCore    Boolean  @default(false)
 
-  journey  Journey?   @relation(fields: [journeyId], references: [id], onDelete: SetNull)
-  seeker   Seeker     @relation(fields: [seekerId], references: [id], onDelete: Cascade)
-  beliefs  Belief[]   @relation("InsightBeliefs")
+  journey Journey?  @relation(fields: [journeyId], references: [id], onDelete: SetNull)
+  seeker  Seeker    @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  beliefs Belief[]  @relation("InsightBeliefs")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -175,4 +256,41 @@ model TribePost {
 
   @@index([visibility])
   @@index([createdAt])
+}
+
+// OAuth tokens for external integrations
+model Integration {
+  id           String          @id @default(cuid())
+  seekerId     String
+  type         IntegrationType
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  metadata     Json?           // integration-specific config (Spotify userId, Google email, etc.)
+
+  seeker Seeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([seekerId, type])
+  @@index([seekerId])
+}
+
+// Tracks what music was playing during a journey session
+model SessionTrack {
+  id        String    @id @default(cuid())
+  journeyId String
+  seekerId  String
+  source    String    // 'SPOTIFY' | 'BRAINFM'
+  trackId   String?
+  trackName String
+  artist    String?
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  journey Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  seeker  Seeker  @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  @@index([journeyId])
 }
