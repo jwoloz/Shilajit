@@ -1,0 +1,27 @@
+node_modules
+.turbo
+.next
+dist
+build
+.env
+.env.local
+*.tsbuildinfo
+
+# Expo
+.expo
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# OS
+.DS_Store
+Thumbs.db

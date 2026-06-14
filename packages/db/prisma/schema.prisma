@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Phase {
+  BEFORE
+  DURING
+  AFTER
+  INTEGRATION
+}
+
+enum PostType {
+  INSIGHT
+  RITUAL
+  DOCTRINE_EXCERPT
+  REFLECTION
+}
+
+enum Visibility {
+  PRIVATE
+  TRIBE
+  PUBLIC
+}
+
+enum BeliefCategory {
+  ETHICS
+  COSMOLOGY
+  PRACTICE
+  RELATIONSHIPS
+  PURPOSE
+  DEATH
+  OTHER
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model Seeker {
+  id          String  @id @default(cuid())
+  supabaseId  String  @unique
+  username    String? @unique
+  tribeHandle String? @unique
+
+  journeys    Journey[]
+  insights    Insight[]
+  beliefs     Belief[]
+  rituals     Ritual[]
+  sacredTexts SacredText[]
+  tribePosts  TribePost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Journey {
+  id          String   @id @default(cuid())
+  seekerId    String
+  substance   String
+  doseMg      Float?
+  doseUnit    String   @default("mg")
+  sporeSource String?
+  scheduledAt DateTime
+  intentions  String?
+  setting     String?
+
+  seeker   Seeker    @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  entries  Entry[]
+  insights Insight[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([seekerId])
+  @@index([scheduledAt])
+}
+
+model Entry {
+  id        String   @id @default(cuid())
+  journeyId String
+  content   String
+  phase     Phase
+  timestamp DateTime @default(now())
+
+  journey Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([journeyId])
+}
+
+model Insight {
+  id        String   @id @default(cuid())
+  journeyId String?
+  seekerId  String
+  content   String
+  tags      String[]
+  resonance Int      @default(5)
+  isCore    Boolean  @default(false)
+
+  journey  Journey?   @relation(fields: [journeyId], references: [id], onDelete: SetNull)
+  seeker   Seeker     @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  beliefs  Belief[]   @relation("InsightBeliefs")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([seekerId])
+  @@index([isCore])
+}
+
+model Belief {
+  id       String          @id @default(cuid())
+  seekerId String
+  content  String
+  category BeliefCategory?
+
+  seeker   Seeker    @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  insights Insight[] @relation("InsightBeliefs")
+  rituals  Ritual[]  @relation("BeliefRituals")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([seekerId])
+}
+
+model Ritual {
+  id          String  @id @default(cuid())
+  seekerId    String
+  name        String
+  description String
+  frequency   String?
+
+  seeker  Seeker   @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  beliefs Belief[] @relation("BeliefRituals")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([seekerId])
+}
+
+model SacredText {
+  id       String @id @default(cuid())
+  seekerId String
+  content  String
+  version  Int    @default(1)
+
+  seeker Seeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  generatedAt DateTime @default(now())
+
+  @@index([seekerId])
+}
+
+model TribePost {
+  id         String     @id @default(cuid())
+  seekerId   String
+  content    String
+  type       PostType
+  visibility Visibility @default(TRIBE)
+  resonances Int        @default(0)
+
+  seeker Seeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([visibility])
+  @@index([createdAt])
+}
