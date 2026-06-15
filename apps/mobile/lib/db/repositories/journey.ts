@@ -24,7 +24,7 @@ export const JourneyRepository = {
     const rows = db.getAllSync(
       'SELECT * FROM journeys WHERE _deleted = 0 ORDER BY scheduled_at DESC'
     )
-    return rows.map(rowToJourney)
+    return rows.map((row) => rowToJourney(row as Record<string, unknown>))
   },
 
   findById(id: string): Journey | null {

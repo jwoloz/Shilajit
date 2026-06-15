@@ -1,6 +1,7 @@
 import { getDb } from '../index'
 import type { Insight, CreateInsightInput } from '@shilajit/types'
 import { generateId } from '@/lib/utils'
+import type { SQLiteBindValue } from 'expo-sqlite'
 
 function rowToInsight(row: Record<string, unknown>): Insight {
   return {
@@ -20,7 +21,7 @@ export const InsightRepository = {
   findAll(opts?: { coreOnly?: boolean; journeyId?: string }): Insight[] {
     const db = getDb()
     const conditions = ['_deleted = 0']
-    const params: unknown[] = []
+    const params: SQLiteBindValue[] = []
 
     if (opts?.coreOnly) {
       conditions.push('is_core = 1')

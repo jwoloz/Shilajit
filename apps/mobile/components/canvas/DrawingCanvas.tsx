@@ -18,7 +18,7 @@ const COLORS = [Colors.text, Colors.primary, Colors.accent, '#4CAF50', '#FF6D00'
 
 export function DrawingCanvas({ onSave, height = 300 }: Props) {
   const [strokes, setStrokes] = useState<Stroke[]>([])
-  const [color, setColor] = useState(Colors.text)
+  const [color, setColor] = useState<string>(Colors.text)
   const [strokeWidth, setStrokeWidth] = useState(3)
   const currentPath = useRef('')
   const isDrawing = useRef(false)

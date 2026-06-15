@@ -84,11 +84,14 @@ export const NoteRepository = {
        ORDER BY timestamp ASC`,
       [journeyId]
     )
-    return rows.map((r) => ({
-      timestamp: r.timestamp as string,
-      mood: r.mood as number,
-      bodyFeel: (r.body_feel as number) ?? 0,
-    }))
+    return rows.map((r) => {
+      const row = r as Record<string, unknown>
+      return {
+        timestamp: row.timestamp as string,
+        mood: row.mood as number,
+        bodyFeel: (row.body_feel as number) ?? 0,
+      }
+    })
   },
 
   getUnsynced(): Record<string, unknown>[] {

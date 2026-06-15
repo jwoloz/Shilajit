@@ -77,10 +77,13 @@ export function getPendingReminders(
     'SELECT id, message, scheduled_at, notification_id FROM reminders WHERE journey_id = ? AND fired = 0 ORDER BY scheduled_at ASC',
     [journeyId]
   )
-  return rows.map((r) => ({
-    id: r.id as string,
-    message: r.message as string,
-    scheduledAt: r.scheduled_at as string,
-    notificationId: r.notification_id as string,
-  }))
+  return rows.map((r) => {
+    const row = r as Record<string, unknown>
+    return {
+      id: row.id as string,
+      message: row.message as string,
+      scheduledAt: row.scheduled_at as string,
+      notificationId: row.notification_id as string,
+    }
+  })
 }
