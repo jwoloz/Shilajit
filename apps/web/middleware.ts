@@ -25,9 +25,15 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect all /api routes except auth
-  if (request.nextUrl.pathname.startsWith('/api/') && !request.nextUrl.pathname.startsWith('/api/auth')) {
-    if (!user) {
+  // Protect all /api routes except auth and webhooks
+  if (
+    request.nextUrl.pathname.startsWith('/api/') &&
+    !request.nextUrl.pathname.startsWith('/api/auth') &&
+    !request.nextUrl.pathname.startsWith('/api/webhooks')
+  ) {
+    // Bearer token routes (mobile) are verified inside the route handler
+    const hasBearerToken = request.headers.get('authorization')?.startsWith('Bearer ')
+    if (!user && !hasBearerToken) {
       return NextResponse.json({ data: null, error: { message: 'Unauthorized' } }, { status: 401 })
     }
   }
