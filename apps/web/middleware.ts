@@ -25,22 +25,46 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const { pathname } = request.nextUrl
+
   // Protect all /api routes except auth and webhooks
   if (
-    request.nextUrl.pathname.startsWith('/api/') &&
-    !request.nextUrl.pathname.startsWith('/api/auth') &&
-    !request.nextUrl.pathname.startsWith('/api/webhooks')
+    pathname.startsWith('/api/') &&
+    !pathname.startsWith('/api/auth') &&
+    !pathname.startsWith('/api/webhooks')
   ) {
     // Bearer token routes (mobile) are verified inside the route handler
     const hasBearerToken = request.headers.get('authorization')?.startsWith('Bearer ')
     if (!user && !hasBearerToken) {
       return NextResponse.json({ data: null, error: { message: 'Unauthorized' } }, { status: 401 })
     }
+    return supabaseResponse
+  }
+
+  // Auth routes are always public
+  if (pathname.startsWith('/auth')) {
+    // If user is logged in and visits /auth, redirect to dashboard
+    if (user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    return supabaseResponse
+  }
+
+  // Root is public (server component handles redirect)
+  if (pathname === '/') {
+    return supabaseResponse
+  }
+
+  // All other non-API routes require a session
+  if (!user) {
+    return NextResponse.redirect(new URL('/auth', request.url))
   }
 
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }

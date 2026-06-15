@@ -1,8 +1,13 @@
-export default function Home() {
-  return (
-    <main style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
-      <h1>Shilajit API</h1>
-      <p>Mobile app backend. See <code>/api/*</code> routes.</p>
-    </main>
-  )
+import { redirect } from 'next/navigation'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+
+export default async function Home() {
+  const supabase = await createSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    redirect('/dashboard')
+  } else {
+    redirect('/auth')
+  }
 }
