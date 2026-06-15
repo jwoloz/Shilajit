@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@shilajit/db'
-import type { Prisma } from '@prisma/client'
 import { getAuthenticatedSeekerId, ok, err, handleError, seekerFromSupabaseId } from '@/lib/api-helpers'
 
 const CreateNoteSchema = z.object({
@@ -51,7 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         ...body,
         journeyId: params.id,
         seekerId: seeker.id,
-      } as Prisma.NoteUncheckedCreateInput,
+      },
     })
     return ok(note)
   } catch (e) {

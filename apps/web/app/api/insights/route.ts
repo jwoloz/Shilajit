@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@shilajit/db'
-import type { Prisma } from '@prisma/client'
 import { getAuthenticatedSeekerId, ok, handleError, seekerFromSupabaseId } from '@/lib/api-helpers'
 
 const CreateInsightSchema = z.object({
@@ -42,7 +41,7 @@ export async function POST(request: NextRequest) {
     const body = CreateInsightSchema.parse(await request.json())
 
     const insight = await prisma.insight.create({
-      data: { ...body, seekerId: seeker.id } as Prisma.InsightUncheckedCreateInput,
+      data: { ...body, seekerId: seeker.id },
     })
     return ok(insight)
   } catch (e) {

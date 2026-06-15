@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@shilajit/db'
-import type { Prisma } from '@prisma/client'
 import { getAuthenticatedSeekerId, ok, err, handleError, seekerFromSupabaseId } from '@/lib/api-helpers'
 import { extractInsightsFromEntry } from '@/lib/ai'
 
@@ -25,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const { autoExtractInsights, ...entryData } = CreateEntrySchema.parse(await request.json())
 
     const entry = await prisma.entry.create({
-      data: { ...entryData, journeyId: params.id } as Prisma.EntryUncheckedCreateInput,
+      data: { ...entryData, journeyId: params.id },
     })
 
     // Optionally auto-extract insights via AI after AFTER/INTEGRATION entries
