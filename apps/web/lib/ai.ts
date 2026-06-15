@@ -3,9 +3,9 @@ import Anthropic from '@anthropic-ai/sdk'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { CompanionMessage, JourneyAnalysis } from '@shilajit/types'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const geminiAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY ?? '')
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY ?? 'not-configured' })
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY ?? 'not-configured' })
+const geminiAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY ?? 'not-configured')
 
 // ─── Doctrine ─────────────────────────────────────────────────────────────────
 
