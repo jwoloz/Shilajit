@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
         } else {
           await tx.journey.upsert({
             where: { id: j.id },
-            update: { ...j, seekerId: seeker.id, _deleted: undefined },
-            create: { ...j, seekerId: seeker.id, _deleted: undefined },
+            update: { ...j, seekerId: seeker.id, _deleted: undefined } as any,
+            create: { ...j, seekerId: seeker.id, _deleted: undefined } as any,
           })
         }
       }
@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
         } else {
           await tx.insight.upsert({
             where: { id: i.id },
-            update: { ...i, seekerId: seeker.id, _deleted: undefined },
-            create: { ...i, seekerId: seeker.id, _deleted: undefined },
+            update: { ...i, seekerId: seeker.id, _deleted: undefined } as any,
+            create: { ...i, seekerId: seeker.id, _deleted: undefined } as any,
           })
         }
       }

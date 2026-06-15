@@ -45,7 +45,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         journeyId: params.id,
         seekerId: seeker.id,
         categories: ['INTEGRATION', 'PRACTICE', 'TOOL', 'RESOURCE'],
-      },
+      } as any,
     })
 
     return ok(rec)

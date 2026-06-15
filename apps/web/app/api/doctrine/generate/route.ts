@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
         content,
         seekerId: seeker.id,
         version: (lastText?.version ?? 0) + 1,
-      },
+      } as any,
     })
 
     return ok(sacredText)

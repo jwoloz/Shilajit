@@ -55,7 +55,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         journeyId: params.id,
         takenAt: body.takenAt ? new Date(body.takenAt) : new Date(),
         cumulativeMg: cumulative,
-      },
+      } as any,
     })
     return ok(dose)
   } catch (e) {

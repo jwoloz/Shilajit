@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
           journeyId: activeJourney.id,
           seekerId: seeker.id,
           phase: 'DURING',
-        },
+        } as any,
       })
       return ok({ fulfillmentText: `Note added to your ${activeJourney.substance} journey.` })
     }
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
           doseUnit: activeJourney.doseUnit,
           journeyId: activeJourney.id,
           cumulativeMg: cumulative,
-        },
+        } as any,
       })
       return ok({
         fulfillmentText: `Logged ${doseMg}${activeJourney.doseUnit} of ${activeJourney.substance}. Total: ${cumulative}${activeJourney.doseUnit}.`,

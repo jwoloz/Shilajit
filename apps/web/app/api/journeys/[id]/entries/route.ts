@@ -24,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const { autoExtractInsights, ...entryData } = CreateEntrySchema.parse(await request.json())
 
     const entry = await prisma.entry.create({
-      data: { ...entryData, journeyId: params.id },
+      data: { ...entryData, journeyId: params.id } as any,
     })
 
     // Optionally auto-extract insights via AI after AFTER/INTEGRATION entries
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
             seekerId: seeker.id,
             journeyId: params.id,
             tags: [],
-          })),
+          })) as any,
         })
       }
     }

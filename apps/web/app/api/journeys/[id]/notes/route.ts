@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         ...body,
         journeyId: params.id,
         seekerId: seeker.id,
-      },
+      } as any,
     })
     return ok(note)
   } catch (e) {
