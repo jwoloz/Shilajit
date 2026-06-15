@@ -20,7 +20,7 @@ const CompanionSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
     const body = CompanionSchema.parse(await request.json())
 

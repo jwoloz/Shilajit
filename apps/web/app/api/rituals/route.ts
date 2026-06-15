@@ -12,7 +12,7 @@ const CreateRitualSchema = z.object({
 
 export async function GET() {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
 
     const rituals = await prisma.ritual.findMany({
@@ -28,7 +28,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
     const { beliefIds, ...data } = CreateRitualSchema.parse(await request.json())
 

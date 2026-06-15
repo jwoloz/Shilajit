@@ -8,7 +8,7 @@ const ExportSheetSchema = z.object({ accessToken: z.string() })
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
 
     const url = new URL(request.url)

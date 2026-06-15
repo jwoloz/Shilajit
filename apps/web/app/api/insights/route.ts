@@ -13,7 +13,7 @@ const CreateInsightSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
     const { searchParams } = new URL(request.url)
     const coreOnly = searchParams.get('core') === 'true'
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
     const body = CreateInsightSchema.parse(await request.json())
 

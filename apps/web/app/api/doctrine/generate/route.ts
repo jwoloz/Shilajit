@@ -13,7 +13,7 @@ const GenerateDoctrineSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
     const options = GenerateDoctrineSchema.parse(await request.json())
 
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
 
     const texts = await prisma.sacredText.findMany({

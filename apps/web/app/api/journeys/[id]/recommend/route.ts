@@ -5,7 +5,7 @@ import { generateRecommendations } from '@/lib/ai'
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
 
     const journey = await prisma.journey.findFirst({
@@ -25,7 +25,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
 export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
 
     const [journey, notes, insights, beliefs] = await Promise.all([

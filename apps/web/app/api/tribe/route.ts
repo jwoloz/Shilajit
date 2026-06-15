@@ -11,7 +11,7 @@ const CreatePostSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    await getAuthenticatedSeekerId()
+    await getAuthenticatedSeekerId(request)
     const { searchParams } = new URL(request.url)
     const cursor = searchParams.get('cursor')
     const limit = Math.min(Number(searchParams.get('limit') ?? 20), 50)
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
     const body = CreatePostSchema.parse(await request.json())
 

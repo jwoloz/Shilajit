@@ -6,7 +6,7 @@ import { getAuthenticatedSeekerId, ok, handleError, seekerFromSupabaseId } from 
 // Pull: fetch all records updated after lastSyncedAt
 export async function GET(request: NextRequest) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
     const { searchParams } = new URL(request.url)
     const since = searchParams.get('since')
@@ -56,7 +56,7 @@ const SyncPushSchema = z.object({
 // Push: upsert local records to server (last-write-wins by updatedAt)
 export async function POST(request: NextRequest) {
   try {
-    const supabaseId = await getAuthenticatedSeekerId()
+    const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
     const payload = SyncPushSchema.parse(await request.json())
 
