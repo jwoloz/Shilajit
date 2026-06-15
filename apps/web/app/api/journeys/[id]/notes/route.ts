@@ -13,7 +13,7 @@ const CreateNoteSchema = z.object({
   bodyFeel: z.number().int().min(1).max(10).optional(),
 })
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)

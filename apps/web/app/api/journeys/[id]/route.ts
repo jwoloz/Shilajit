@@ -21,7 +21,7 @@ async function resolveJourney(id: string, seekerId: string) {
   return journey
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
@@ -52,7 +52,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)

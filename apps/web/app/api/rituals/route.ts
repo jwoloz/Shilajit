@@ -10,7 +10,7 @@ const CreateRitualSchema = z.object({
   beliefIds: z.array(z.string()).default([]),
 })
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)

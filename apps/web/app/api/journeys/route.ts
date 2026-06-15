@@ -13,7 +13,7 @@ const CreateJourneySchema = z.object({
   setting: z.string().optional(),
 })
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)

@@ -3,7 +3,7 @@ import { prisma } from '@shilajit/db'
 import { getAuthenticatedSeekerId, ok, err, handleError, seekerFromSupabaseId } from '@/lib/api-helpers'
 import { generateRecommendations } from '@/lib/ai'
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const supabaseId = await getAuthenticatedSeekerId(request)
     const seeker = await seekerFromSupabaseId(supabaseId)
