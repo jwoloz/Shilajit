@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         return ok({ fulfillmentText: 'Could not log dose. No active journey or dose amount unclear.' })
       }
       const existing = await prisma.doseEvent.findMany({ where: { journeyId: activeJourney.id } })
-      const cumulative = existing.reduce((s: number, d) => s + d.doseMg, 0) + doseMg
+      const cumulative = existing.reduce((s: number, d: { doseMg: number }) => s + d.doseMg, 0) + doseMg
       await prisma.doseEvent.create({
         data: {
           substance: activeJourney.substance,
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         return ok({ fulfillmentText: 'No active journey found.' })
       }
       const doses = await prisma.doseEvent.findMany({ where: { journeyId: activeJourney.id } })
-      const total = doses.reduce((s: number, d) => s + d.doseMg, 0)
+      const total = doses.reduce((s: number, d: { doseMg: number }) => s + d.doseMg, 0)
       const elapsed = Math.floor((Date.now() - new Date(activeJourney.scheduledAt).getTime()) / 60000)
       return ok({
         fulfillmentText: `${elapsed} minutes into your ${activeJourney.substance} journey. Total dose: ${total}${activeJourney.doseUnit}.`,

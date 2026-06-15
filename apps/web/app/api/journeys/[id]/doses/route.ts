@@ -47,7 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const existing = await prisma.doseEvent.findMany({
       where: { journeyId: params.id },
     })
-    const cumulative = existing.reduce((sum: number, d) => sum + d.doseMg, 0) + body.doseMg
+    const cumulative = existing.reduce((sum: number, d: { doseMg: number }) => sum + d.doseMg, 0) + body.doseMg
 
     const dose = await prisma.doseEvent.create({
       data: {
