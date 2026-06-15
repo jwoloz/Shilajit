@@ -1,4 +1,5 @@
 import { createRequire } from 'module'
+import path from 'path'
 
 const require = createRequire(import.meta.url)
 
@@ -8,8 +9,8 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      react: require.resolve('react'),
-      'react-dom': require.resolve('react-dom'),
+      react: path.dirname(require.resolve('react/package.json')),
+      'react-dom': path.dirname(require.resolve('react-dom/package.json')),
     }
     return config
   },
