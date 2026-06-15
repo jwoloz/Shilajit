@@ -1,4 +1,5 @@
 import { prisma } from '@shilajit/db'
+import type { DoseEvent, Note } from '@prisma/client'
 
 const GOOGLE_API = 'https://www.googleapis.com'
 
@@ -149,10 +150,10 @@ export async function exportMetricsToSheet(seekerId: string, accessToken: string
     'Notes', 'Insights', 'Avg Mood', 'Duration (min)',
   ]
 
-  const rows = journeys.map((j) => {
-    const totalDose = j.doseEvents.reduce((s, d) => s + d.doseMg, 0)
-    const moods = j.notes.filter((n) => n.mood).map((n) => n.mood as number)
-    const avgMood = moods.length > 0 ? (moods.reduce((a, b) => a + b, 0) / moods.length).toFixed(1) : ''
+  const rows = journeys.map((j: (typeof journeys)[number]) => {
+    const totalDose = j.doseEvents.reduce((s: number, d: DoseEvent) => s + d.doseMg, 0)
+    const moods = j.notes.filter((n: Note) => n.mood !== null).map((n: Note) => n.mood as number)
+    const avgMood = moods.length > 0 ? (moods.reduce((a: number, b: number) => a + b, 0) / moods.length).toFixed(1) : ''
     return [
       new Date(j.scheduledAt).toLocaleDateString(),
       j.substance,
