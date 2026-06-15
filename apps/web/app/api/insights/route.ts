@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const body = CreateInsightSchema.parse(await request.json())
 
     const insight = await prisma.insight.create({
-      data: { ...body, seekerId: seeker.id },
+      data: { ...body, seekerId: seeker.id } as any,
     })
     return ok(insight)
   } catch (e) {

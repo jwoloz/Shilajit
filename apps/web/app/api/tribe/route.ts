@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const body = CreatePostSchema.parse(await request.json())
 
     const post = await prisma.tribePost.create({
-      data: { ...body, seekerId: seeker.id },
+      data: { ...body, seekerId: seeker.id } as any,
       include: { seeker: { select: { tribeHandle: true } } },
     })
     return ok(post)

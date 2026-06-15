@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const body = CreateJourneySchema.parse(await request.json())
 
     const journey = await prisma.journey.create({
-      data: { ...body, seekerId: seeker.id },
+      data: { ...body, seekerId: seeker.id } as any,
     })
 
     return ok(journey)
