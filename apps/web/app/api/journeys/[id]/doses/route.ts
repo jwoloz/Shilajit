@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@shilajit/db'
+import type { Prisma } from '@prisma/client'
 import { getAuthenticatedSeekerId, ok, err, handleError, seekerFromSupabaseId } from '@/lib/api-helpers'
 
 const CreateDoseSchema = z.object({
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         journeyId: params.id,
         takenAt: body.takenAt ? new Date(body.takenAt) : new Date(),
         cumulativeMg: cumulative,
-      },
+      } as Prisma.DoseEventUncheckedCreateInput,
     })
     return ok(dose)
   } catch (e) {

@@ -15,9 +15,11 @@ export async function POST(request: NextRequest) {
     if ('imageBase64' in body) {
       const text = await extractTextFromImage(body.imageBase64)
       return ok({ text })
-    } else {
+    } else if ('audioBase64' in body) {
       const text = await transcribeAudio(body.audioBase64)
       return ok({ text })
+    } else {
+      return ok({ text: '' })
     }
   } catch (e) {
     return handleError(e)

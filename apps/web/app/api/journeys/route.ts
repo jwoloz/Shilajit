@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@shilajit/db'
+import type { Prisma } from '@prisma/client'
 import { getAuthenticatedSeekerId, ok, handleError, seekerFromSupabaseId } from '@/lib/api-helpers'
 
 const CreateJourneySchema = z.object({
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     const body = CreateJourneySchema.parse(await request.json())
 
     const journey = await prisma.journey.create({
-      data: { ...body, seekerId: seeker.id },
+      data: { ...body, seekerId: seeker.id } as Prisma.JourneyUncheckedCreateInput,
     })
 
     return ok(journey)

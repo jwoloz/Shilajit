@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@shilajit/db'
 import { ok, handleError, getAuthenticatedSeekerId, seekerFromSupabaseId } from '@/lib/api-helpers'
 import { companionChat } from '@/lib/ai'
+import type { CompanionMessage } from '@shilajit/types'
 
 const CompanionSchema = z.object({
   audioBase64: z.string().optional(),
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
     const response = await companionChat({
       audioBase64: body.audioBase64,
       text: body.text,
-      history: body.history,
+      history: body.history as CompanionMessage[],
       provider: body.provider,
       journeyContext: { journey, coreInsights: insights, beliefs },
     })

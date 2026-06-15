@@ -1,7 +1,7 @@
 import OpenAI from 'openai'
 import Anthropic from '@anthropic-ai/sdk'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import type { Insight, Belief, Ritual, CompanionMessage, JourneyAnalysis } from '@shilajit/types'
+import type { CompanionMessage, JourneyAnalysis } from '@shilajit/types'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -9,10 +9,25 @@ const geminiAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY ?? '')
 
 // ─── Doctrine ─────────────────────────────────────────────────────────────────
 
+interface DoctrineInsight {
+  content: string
+  resonance: number
+}
+
+interface DoctrineBelief {
+  content: string
+  category: string | null
+}
+
+interface DoctrineRitual {
+  name: string
+  description: string
+}
+
 interface DoctrineContext {
-  insights: Insight[]
-  beliefs: Belief[]
-  rituals: Ritual[]
+  insights: DoctrineInsight[]
+  beliefs: DoctrineBelief[]
+  rituals: DoctrineRitual[]
   additionalContext?: string
 }
 

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@shilajit/db'
+import type { Prisma } from '@prisma/client'
 import { getAuthenticatedSeekerId, ok, handleError, seekerFromSupabaseId } from '@/lib/api-helpers'
 
 const CreateBeliefSchema = z.object({
@@ -35,10 +36,11 @@ export async function POST(request: NextRequest) {
 
     const belief = await prisma.belief.create({
       data: {
-        ...data,
-        seekerId: seeker.id,
+        content: data.content,
+        category: data.category,
+        seeker: { connect: { id: seeker.id } },
         insights: insightIds.length > 0 ? { connect: insightIds.map((id) => ({ id })) } : undefined,
-      },
+      } satisfies Prisma.BeliefCreateInput,
     })
     return ok(belief)
   } catch (e) {

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@shilajit/db'
+import type { Prisma } from '@prisma/client'
 import { getAuthenticatedSeekerId, ok, handleError, seekerFromSupabaseId } from '@/lib/api-helpers'
 
 const CreateRitualSchema = z.object({
@@ -34,10 +35,12 @@ export async function POST(request: NextRequest) {
 
     const ritual = await prisma.ritual.create({
       data: {
-        ...data,
-        seekerId: seeker.id,
+        name: data.name,
+        description: data.description,
+        frequency: data.frequency,
+        seeker: { connect: { id: seeker.id } },
         beliefs: beliefIds.length > 0 ? { connect: beliefIds.map((id) => ({ id })) } : undefined,
-      },
+      } satisfies Prisma.RitualCreateInput,
     })
     return ok(ritual)
   } catch (e) {
